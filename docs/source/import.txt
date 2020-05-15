@@ -1,0 +1,359 @@
+Threat Response Integration Workflows
+=====================================
+
+1. Get Host to Communicate With
+===============================
+
+Provide a list of valid API Hosts
+---------------------------------
+
+-  **waiting for endpoint that is queryable with all valid endpoints**
+-  **until then they must be hard coded**
+-  https://visibility.amp.cisco.com
+-  https://visibility.eu.amp.cisco.com
+-  https://visibility.apjc.amp.cisco.com
+-  Cisco internal reference list:
+   https://github.com/threatgrid/tenzin/wiki/Visibility-URLs
+-  TODO: Make these available programmatically
+   (https://visibility.amp.cisco.com/clouds.json)
+
+2. Testing API Client Authentication
+===================================+
+
+Present with user with “user” and “org” info
+--------------------------------------------
+
+-  User enters client_id and client client_password
+-  User Clicks ‘Test’
+-  Generate token: POST /iroh/oauth2/token
+
+   -  https://visibility.amp.cisco.com/iroh/oauth2/index.html#!/OAuth2/post_iroh_oauth2_token
+
+-  [STRIKEOUT:Query whoami: GET /iroh/iroh-ui-settings/whoami]
+
+   -  [STRIKEOUT:https://visibility.amp.cisco.com/iroh/iroh-ui-settings/index.html#!/User_Info/get_iroh_iroh_ui_settings_whoami]
+      **NOTE** Requires *session-token* and client_credentials grant
+      provides an *access-token*
+
+-  Return .auth-infos.org.name
+-  Return .auth-infos.user.email
+-  Render in UI when possible
+-  Alternatively indicate success in UI somehow when possible
+-  If fail, inform why (Connection Timeout, 401 Unauthorized, 500
+   Something went wrong on the server, etc…)
+-  Failure messages should be informative and verbose:
+
+   -  “Recieved 401 when trying to generat token, veryify your client_id
+      and client_password.”
+   -  “The connection to https://visibility.amp.cisco.com timed out.”
+
+3. Pivot to Threat Response
+===========================
+
+3.1. Click / Right Click on observable / string open investigation in new tab
+-----------------------------------------------------------------------------
+
+-  Generate a URL using the following format
+-  https://visibility.amp.cisco.com/#/investigate?q=
+-  Should open in a new tab when possible
+
+Potential scenarios to use
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  When an easy method for launching an investigation of an observable
+   is desired
+-  When there is no desire to save the list of observables
+
+3.2. Launch investigation from a newly created casebook
+-------------------------------------------------------
+
+-  Infer the private.intel. host based on the visibility. host used
+-  Replace “visibility” in visibility.amp.cisco.com with “private.intel”
+-  Create a new casebook using: POST /ctia/casebook
+   -https://private.intel.amp.cisco.com/index.html#!/Casebook/post_ctia_casebook
+-  Example casebook JSON format:
+   ``json     {         "description": "Created via the API",         "schema_version": "1.0.9",         "observables": [           {             "value": "cisco.com",             "type": "domain"           }         ],         "type": "casebook",         "short_description": "API Case",         "title": "Casebook July 26, 2018 11:14 AM",         "tlp": "amber",         "timestamp": "2018-07-26T16:14:40.000Z"     }``
+-  Save .id from response
+-  Generate URL using the following format
+-  https://visibility.amp.cisco.com/#/investigate?spid=
+
+   -  Format of .id returned from CTIA:
+      https://private.intel.amp.cisco.com:443/ctia/casebook/casebook-25d3dd3e-661b-4b37-8588-f12685e296aa
+   -  Only the UUID portion “25d3dd3e-661b-4b37-8588-f12685e296aa” is
+      required to open a casebook
+
+-  Should open in new tab when possible
+
+.. _potential-scenarios-to-use-1:
+
+Potential scenarios to use
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  When there are more than one observables to investigate and it is not
+   possible to generate a URL containing all of them
+-  When passing the observables via q= results in a URL that is more
+   than 2,083 characters
+-  When there is a desire to investigate and save observables
+
+3.3. Launch investigation from an existing casebook
+---------------------------------------------------
+
+-  Infer the domain based on the visibility. domain used
+-  Replace “visibility” in visibility.amp.cisco.com with “private.intel”
+-  Search for existing casebook using: GET /ctia/casebook/search
+   -https://private.intel.amp.cisco.com/index.html#!/Casebook/get_ctia_casebook_search
+
+   -  query=\* will return all casebooks
+   -  query can be any observable or string in the name or description
+
+-  Multiple casebooks may be returned as an array
+-  Determine a reasonable n number of casebooks to present to the user
+   based on product capabilities
+-  For each casebook presented to the user:
+
+   -  Save .[].title
+   -  Save .[].id
+
+-  Generate URL using the following format
+-  https://visibility.amp.cisco.com/#/investigate?spid=
+
+   -  Format of .id returned from CTIA:
+      https://private.intel.amp.cisco.com:443/ctia/casebook/casebook-25d3dd3e-661b-4b37-8588-f12685e296aa
+   -  Only the UUID portion “25d3dd3e-661b-4b37-8588-f12685e296aa” is
+      required to open a casebook
+
+-  Present n number of .[].title links to the user
+-  Should open in new tab when possible
+-  TODO: Verify all casebook fields that are searched via query
+
+.. _potential-scenarios-to-use-2:
+
+Potential scenarios to use
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  When a casebook exists with the observable you would like to
+   investigate
+-  TODO: Populate with scenarios
+
+4. Query Threat Response
+========================
+
+4.1. Get Verdicts for an Observable
+-----------------------------------
+
+-  Extract observables using: POST /iroh/iroh-inspect/inspect
+
+   -  https://visibility.amp.cisco.com/iroh/iroh-inspect/index.html#!/INSPECT/post_iroh_iroh_inspect_inspect
+
+-  Pass the returned array to: POST
+   /iroh/iroh-enrich/deliberate/observables
+
+   -  https://visibility.amp.cisco.com/iroh/iroh-enrich/index.html#!/Deliberate/post_iroh_iroh_enrich_deliberate_observables
+
+-  Return .data[].module
+-  Return .data[].data.verdicts.docs[].observable.value
+-  Return .data[].data.verdicts.docs[].disposition or
+   .data[].data.verdicts.docs[].disposition_name
+
+   -  Disposition mapping: {1 “Clean”, 2 “Malicious”, 3 “Suspicious”, 4
+      “Common”, 5 “Unknown”}
+
+-  Maybe Return .data[].data.verdicts.docs[].valid_time.start_time
+-  Maybe Return .data[].data.verdicts.docs[].valid_time.end_time
+
+Entities that may be returned
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  `Verdicts <https://github.com/threatgrid/ctim/blob/master/doc/structures/verdict.md>`__
+
+.. _potential-scenarios-to-use-3:
+
+Potential scenarios to use
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  There are a high number of observables
+-  Only verdicts are desired
+-  To reduce the number of observables
+-  The goal is to indicate which items merit looking into further
+
+4.2. Contextualize an Observable
+--------------------------------
+
+-  Extract observables using: POST /iroh/iroh-inspect/inspect
+
+   -  https://visibility.amp.cisco.com/iroh/iroh-inspect/index.html#!/INSPECT/post_iroh_iroh_inspect_inspect
+
+-  Pass the returned array to: POST
+   /iroh/iroh-enrich/observe/observables
+
+   -  https://visibility.amp.cisco.com/iroh/iroh-enrich/index.html#!/Observe/post_iroh_iroh_enrich_observe_observables
+
+-  Return .data[].module
+-  Other pieces of data to return depend on the use case
+-  Mapping observables to some objects (attack_patterns) requires
+   looking at the relationships and matching the IDs
+
+   -  TODO: Produce full list where this is true
+
+.. _entities-that-may-be-returned-1:
+
+Entities that may be returned
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  `Actor <https://github.com/threatgrid/ctim/blob/master/doc/structures/actor.md>`__
+-  `Attack
+   Pattern <https://github.com/threatgrid/ctim/blob/master/doc/structures/attack_pattern.md>`__
+-  `Campaign <https://github.com/threatgrid/ctim/blob/master/doc/structures/campaign.md>`__
+-  `Course of
+   Action <https://github.com/threatgrid/ctim/blob/master/doc/structures/coa.md>`__
+-  `Data Tables <>`__
+-  `Feedback <https://github.com/threatgrid/ctim/blob/master/doc/structures/feedback.md>`__
+-  `Incident <https://github.com/threatgrid/ctim/blob/master/doc/structures/incident.md>`__
+-  `Indicator <https://github.com/threatgrid/ctim/blob/master/doc/structures/indicator.md>`__
+-  `Judgement <https://github.com/threatgrid/ctim/blob/master/doc/structures/judgement.md>`__
+-  `Malware <https://github.com/threatgrid/ctim/blob/master/doc/structures/malware.md>`__
+-  `Relationship <https://github.com/threatgrid/ctim/blob/master/doc/structures/relationship.md>`__
+-  `Sighting <https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md>`__
+-  `Tool <https://github.com/threatgrid/ctim/blob/master/doc/structures/tool.md>`__
+-  `Verdict <https://github.com/threatgrid/ctim/blob/master/doc/structures/verdict.md>`__
+-  `Vulnerability <https://github.com/threatgrid/ctim/blob/master/doc/structures/vulnerability.md>`__
+-  `Weakness <https://github.com/threatgrid/ctim/blob/master/doc/structures/weakness.md>`__
+
+Entities we’ll focus on for v1 integrations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  Verdicts
+-  Sightings (+Targets)
+-  Indicators
+
+Are there targets in “my” environment?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  Return .data[].data.sightings.docs[]?.targets
+-  Compare returned objects and deduplicate to get a true unique values
+
+   -  The same target can be observed for multiple observables
+      .data[].data.sightings.docs[]?.observables
+   -  TODO: Figure out how we want to handle identical target returned
+      from multiple modules or for multiple observables
+
+.. _potential-scenarios-to-use-4:
+
+Potential scenarios to use
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  Check for targets from within the returned sightings
+-  Contextualize an observable as it relates to the Global and Private
+   Threat Intel
+-  TODO: Add more scenarios
+-  TODO: Breakout scenario work flows
+
+5. Refer observable
+===================
+
+-  Extract observables using: POST /iroh/iroh-inspect/inspect
+
+   -  https://visibility.amp.cisco.com/iroh/iroh-inspect/index.html#!/INSPECT/post_iroh_iroh_inspect_inspect
+
+-  Pass the returned array to: POST /iroh/iroh-enrich/refer/observables
+
+   -  https://visibility.amp.cisco.com/iroh/iroh-enrich/index.html#!/Refer/post_iroh_iroh_enrich_refer_observables
+
+-  Return .data[].module
+-  Return .data[].url
+-  Maybe return .data[].description
+-  Render .data[].description link to user in a way that makes sense
+   within the product
+-  Should open in a new tab when possible
+
+.. _potential-scenarios-to-use-5:
+
+Potential scenarios to use
+--------------------------
+
+-  Get the links to pivot into products based on modules
+-  Streamline user experience when needing to pivot into other products
+-  TODO: Populate with more data
+
+6. Respond observable
+=====================
+
+-  Extract observables using: POST /iroh/iroh-inspect/inspect
+
+   -  https://visibility.amp.cisco.com/iroh/iroh-inspect/index.html#!/INSPECT/post_iroh_iroh_inspect_inspect
+
+-  Pass the returned array to: POST
+   /iroh/iroh-response/respond/observables
+
+   -  https://visibility.amp.cisco.com/iroh/iroh-response/index.html#!/Response/post_iroh_iroh_response_respond_observables
+
+-  Return .data[].module
+-  Return .data[].title
+-  Return .data[].url
+-  Render <a href=visibility_host + .data[].url>.data[].title link to
+   user in a way that makes sense within the product
+-  When clicked authenticate using token
+
+7. Relay API (renamed Remote Module?)
+=====================================
+
+Requirements
+------------
+
+-  All docs have to contain a schema_version field
+
+   -  Current version can be found at:
+      https://github.com/threatgrid/ctim
+
+-  All entities should have an id, in your case it’s a transient as it’s
+   not something stored/accessible at some place using HTTP
+
+   -  A transient is just a string, you need to concatenate transient:
+      with an UUID
+   -  For example: transient:616608f4-7658-49f1-8728-d9a3dde849d5
+
+-  Sightings need a count field
+
+   -  https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md#propertycount-integer
+
+Good to do when possible
+------------------------
+
+-  Sighting.data property, that allows you to add a semi-structured map
+   of key-value pairs (Why tho?)
+
+   -  https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md#property-data–sightingdatatable-object
+
+-  Put some of the Indicator explanation in the Sighting description,
+   which is markdown
+
+   -  https://github.com/threatgrid/ctim/blob/master/doc/structures/indicator.md#property-description–markdown-string
+
+-  Set resolution field to “blocked” if it was…
+
+   -  https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md#property-resolution–resolution-string
+
+-  If source for sighting is a distinct appliance (WAF, IDS)
+   Sighting.sensor_object can be set to identify the specific instance
+   that detected
+
+   -  ??? source for sensor_object?
+
+POST /respond​/observables
+--------------------------
+
+-  TODO: Think through when to show add vs remove for blocking actions
+   and the assciated logic
+
+8. Set Rate Limit On Queries
+============================
+
+9. Monitor Rate Limit
+=====================
+
+Resources:
+==========
+
+-  https://github.com/threatgrid/ctia/blob/master/doc/use_cases.md
+-  https://github.com/threatgrid/ctr-relay-service
+-  https://github.com/threatgrid/iroh/wiki/Product-Overview
