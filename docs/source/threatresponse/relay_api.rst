@@ -20,11 +20,3 @@ Put some of the Indicator explanation in the Sighting description, which is mark
 Set resolution field to “blocked” if it was blocked. Example can be found at https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md#property-resolution--resolution-string
 
 If source for sighting is a distinct appliance (WAF, IDS) Sighting.sensor_object can be set to identify the specific instance that detected.
-
-TODO:
-
-.. code::
-
-    POST /respond​/observables
-
-TODO: Think through when to show add vs remove for blocking actions and the assciated logic
