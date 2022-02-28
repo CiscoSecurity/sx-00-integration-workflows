@@ -15,8 +15,8 @@ Good Practices When Possible
 
 Sighting.data property, that allows you to add a semi-structured map of key-value pairs. Example can be found at https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md#property-data--sightingdatatable-object
 
-Put some of the Indicator explanation in the Sighting description, which is markdown. Example can be found at https://github.com/threatgrid/ctim/blob/master/doc/structures/indicator.md#property-description--markdown-string
+Put some of the Indicator explanation in the Sighting description, which is markdown. Example can be found at https://github.com/threatgrid/ctim/blob/master/doc/structures/indicator.md#property-description--markdownstring
 
-Set resolution field to “blocked” if it was blocked. Example can be found at https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md#property-resolution--resolution-string
+Set resolution field to “blocked” if it was blocked. Example can be found at https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md#propertyresolution-resolutionstring
 
 If source for sighting is a distinct appliance (WAF, IDS) Sighting.sensor_object can be set to identify the specific instance that detected.

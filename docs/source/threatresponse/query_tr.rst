@@ -9,7 +9,7 @@ Extract Observables
 
 .. note::
 
-    This step can be skipped if the observable type is known and can be mapped to the `supported observables <https://github.com/threatgrid/ctim/blob/master/src/ctim/schemas/vocabularies.cljc#L241>`_ so you can build your own payload.
+    This step can be skipped if the observable type is known and can be mapped to the `supported observables <https://github.com/threatgrid/ctim/blob/master/src/ctim/schemas/vocabularies.cljc#L254>`_ so you can build your own payload.
 
 Extract observables using:
 
@@ -128,7 +128,7 @@ JQ Filters for occasionally used values:
 - ``.data[].data.verdicts.docs[].valid_time.start_time``
 - ``.data[].data.verdicts.docs[].valid_time.end_time``
 
-Entities that may be returned:
+CTIM Entities that may be returned from ``/deliberate/observables``:
 
 - `Verdicts <https://github.com/threatgrid/ctim/blob/master/doc/structures/verdict.md>`_
 
@@ -148,7 +148,7 @@ Extract Observables
 
 .. note::
 
-    This step can be skipped if the observable type is known and can be mapped to the `supported observables <https://github.com/threatgrid/ctim/blob/master/src/ctim/schemas/vocabularies.cljc#L241>`_ so you can build your own payload.
+    This step can be skipped if the observable type is known and can be mapped to the `supported observables <https://github.com/threatgrid/ctim/blob/master/src/ctim/schemas/vocabularies.cljc#L254>`_ so you can build your own payload.
 
 Extract observables using:
 
@@ -274,7 +274,7 @@ This returns the ``.data[].module`` and other pieces of data depending on the us
 
 Mapping observables to some objects (attack_patterns) requires looking at the relationships and matching the IDs.
 
-May return any of the CTIM entities:
+Querying ``/observe/observables`` may return any of the CTIM entities:
 
 - `Actor <https://github.com/threatgrid/ctim/blob/master/doc/structures/actor.md>`_
 - `Attack Pattern <https://github.com/threatgrid/ctim/blob/master/doc/structures/attack_pattern.md>`_
@@ -287,6 +287,7 @@ May return any of the CTIM entities:
 - `Malware <https://github.com/threatgrid/ctim/blob/master/doc/structures/malware.md>`_
 - `Relationship <https://github.com/threatgrid/ctim/blob/master/doc/structures/relationship.md>`_
 - `Sighting <https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md>`_
+- `Target Record <https://github.com/threatgrid/ctim/blob/master/doc/structures/target_record.md>`_
 - `Tool <https://github.com/threatgrid/ctim/blob/master/doc/structures/tool.md>`_
 - `Verdict <https://github.com/threatgrid/ctim/blob/master/doc/structures/verdict.md>`_
 - `Vulnerability <https://github.com/threatgrid/ctim/blob/master/doc/structures/vulnerability.md>`_
@@ -294,10 +295,11 @@ May return any of the CTIM entities:
 
 Most commonly used entities:
 
-- Verdicts
-- Sightings
-- Indicators
-- Judgements
+- `Verdict <https://github.com/threatgrid/ctim/blob/master/doc/structures/verdict.md>`_
+- `Sighting <https://github.com/threatgrid/ctim/blob/master/doc/structures/sighting.md>`_
+- `Indicator <https://github.com/threatgrid/ctim/blob/master/doc/structures/indicator.md>`_
+- `Judgement <https://github.com/threatgrid/ctim/blob/master/doc/structures/judgement.md>`_
+- `Relationship <https://github.com/threatgrid/ctim/blob/master/doc/structures/relationship.md>`_
 
 .. note::
 
