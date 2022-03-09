@@ -6,7 +6,7 @@ Extract Observables
 
 .. note::
 
-    This step can be skipped if the observable type is known and can be mapped to the `supported observables <https://github.com/threatgrid/ctim/blob/master/src/ctim/schemas/vocabularies.cljc#L241>`_ so you can build your own payload.
+    This step can be skipped if the observable type is known and can be mapped to the `supported observables <https://github.com/threatgrid/ctim/blob/master/src/ctim/schemas/vocabularies.cljc#L254>`_ so you can build your own payload.
 
 Extract observables using:
 
